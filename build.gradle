@@ -3,7 +3,8 @@ buildscript {
         springBootVersion = '1.0.2.RELEASE'
     }
     repositories {
-        mavenCentral()
+        //mavenCentral()
+        maven { url "http://10.100.0.111/archiva/repository/internal/" }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -24,22 +25,20 @@ ext {
 }
 
 apply plugin: 'java'
-//apply plugin: 'eclipse'
-//apply plugin: 'idea'
 apply plugin: 'spring-boot'
-//apply plugin: 'cloudfoundry'
+apply plugin: 'cloudfoundry'
 
 //tasks."cf-push".dependsOn assemble
 
 /*cloudfoundry {
-    target = "https://api.apj.fe.pivotal.io"
+    target = "https://run.pivotal.io"
     organization = "hkg_roadshow"
     space = "development"
 
     application = "cities_hkg"
     file = file("${jar.archivePath}")
-    host = "cities_hkg"
-    domain = "apj.fe.pivotal.io"
+    host = "cities_test"
+    domain = "cfapp.io"
     memory = 512
     instances = 1
     healthCheckTimeout = 180
@@ -65,9 +64,10 @@ jar {
 }
 
 repositories {
-    mavenCentral()
-    maven { url "http://repo.spring.io/milestone" }
-    maven { url "http://repo.spring.io/snapshot" }
+    maven { url "http://10.100.0.111/archiva/repository/internal/" }
+    //maven { url "http://repo.spring.io/milestone" }
+    //maven { url "http://repo.spring.io/snapshot" }
+    //mavenCentral()
 }
 
 dependencies {
