@@ -60,7 +60,7 @@ apply plugin: 'cloudfoundry'
 
 jar {
     baseName = 'citytest'
-    version =  '1.1'
+    version =  project.version
 }
 
 repositories {

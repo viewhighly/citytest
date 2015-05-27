@@ -40,10 +40,10 @@ Tasks:: +clean assemble+
 
 . Under "Post-build Actions"
 Click: "Add post-build action"
-Select "Archive the artifacts"
-Fill in "Files to archive" :  build/libs/citytest*.jar
-Click "Advanced..."
-Select "Archive artifacts only if build is successful"
+* Click "Add build step" under the "Build" section of the page
+* Select "[ArtifactDeployer] - Deploy the artifacts from build workspace to remote locations"
+* Artifacts to deploy: build/libs/*.jar
+* Remote File Location: /artifacts/<your_name>
 
 . Save the config and try running the build by clicking ``Build Now''. Ensure that you see the artifact in Artifactory.
 
@@ -84,13 +84,7 @@ def buildJob = Jenkins.instance.getItemByFullName('citytest-<your_name>-build');
 return getAllBuildNumbers(buildJob)
 ----
 
-* Click "Add build step" under the "Build" section of the page
-* Select "Copy artifacts from another project""
-* Project name: citytest-<your_name>-build
-* Which build: Specified by a build parameter
-*    Parameter Name: BUILD_SELECTOR
-
-. Under +Build+, add a +Execute Shell+ build step. Remember to replace in the script below +<your_name>+ with your name without space!
+. Under +Build+, add a +Execute Shell+ build step. Remember to replace in the script below +<your_name>+ with your name without space and also any other parameters!
 +
 Command::
 +
@@ -116,11 +110,11 @@ ROUTE_VERSION=$(echo "${BUILD_VERSION}" | cut -d"." -f1-3 | tr '.' '-')
 echo "Deployed Version: $DEPLOYED_VERSION"
 echo "Route Version: $ROUTE_VERSION"
 
-cf push "cities-${YOUR_NAME}-$BUILD_VERSION" -i 1 -m 512M -n "cities-${YOUR_NAME}-$ROUTE_VERSION" -d ${PCF_APP_DOMAIN} -p artifacts/citytest-${BUILD_VERSION}.jar --no-manifest
+cf push "cities-${YOUR_NAME}-$BUILD_VERSION" -i 1 -m 512M -n "cities-${YOUR_NAME}-$ROUTE_VERSION" -d ${PCF_APP_DOMAIN} -p /artifacts/${YOUR_NAME}/build/libs/citytest-${BUILD_VERSION}.jar --no-manifest
 
-echo "Is artifacts/citytest-${BUILD_VERSION}.jar exists?"
+echo "Is /artifacts/${YOUR_NAME}/build/libs/citytest-${BUILD_VERSION}.jar exists?"
 pwd
-ls -l artifacts/citytest-${BUILD_VERSION}.jar
+ls -l /artifacts/${YOUR_NAME}/build/libs/citytest-${BUILD_VERSION}.jar
 
 cf map-route "cities-${YOUR_NAME}-${BUILD_VERSION}" ${PCF_APP_DOMAIN} -n cities-${YOUR_NAME}
 cf scale cities-${YOUR_NAME}-${BUILD_VERSION} -i 2
