@@ -139,11 +139,11 @@ fi
 
 == Create the Trigger
 
-. Return to the +citytest-unitoken+ project and click +Configure+.
+. Return to the +citytest-<your_name>-build+ project and click +Configure+.
 
 . Under +Post Build Actions+ add a post-build action, selecting +Trigger parameterized build on other projects+.
 +
-Projects to build:: +citytest-unitoken-deploy+
+Projects to build:: +citytest-<your_name>-deploy+
 Predefined parameters:: +BUILD_VERSION=$BUILD_NUMBER+
 
 . Save the config and try running the build by clicking ``Build Now''. You should see both builds executed coupled with a zero-downtime deploy of the app to Cloud Foundry.
