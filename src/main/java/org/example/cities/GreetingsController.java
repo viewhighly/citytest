@@ -11,6 +11,6 @@ public class GreetingsController {
 
     @RequestMapping("/")
     public String index() {
-        return "Greetings HK Roadshow!";
+        return "Greetings Beijing Roadshow!";
     }
 }

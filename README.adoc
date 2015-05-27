@@ -15,65 +15,14 @@ Foundry.
 $ git clone https://github.com/<YOUR_GIT_USERNAME>/citytest
 $ cd citytest
 ----
-
-Login to your Jenkins instance at CloudBees. (if using Cloud Jenkins).
-
-Navigate to Manage Jenkins > Manage Plugins > Available.
-
-Install the following plugins:
-
-Gradle
-
-Mask Passwords
-
-Extensible Choice Parameter Plugin
-
-Artifactory Plugin
-
-Parameterized Trigger Plugin
-
-When you do, tell Jenkins to restart after plugin install.
-
-
-. Login to your Aritfactory Online instance.
-
-. Navigate to +Admin > Security > General+.
-
-. Activate encryption for passwords.
-
-. Next navigate to +Admin > Security > Users+.
-
-. Create a new user named +deployer+ with a password of your choosing.
-
-. Once created, navigate to +Admin > Security > Permissions+.
-
-. +Edit+ the +Anything+ permissions target.
-
-. Select the +Users+ tab, and check all permissions for your new user.
-
-. Logout, and then log back in as your new user.
-
-. Click on the account name in the top right hand corner of the screen.
-
-. Enter your password and click +Unlock+.
-
-. Copy your encrypted password and paste it somewhere safe.
-
-. Next, send your artifactory details to the CF Jenkins admin (Carlos Queiroz).
-+
-URL:: `https://<<your artifactory hostname>>.artifactoryonline.com/<<your artifactory hostname>>` (e.g.
-+https://cqueiroz.artifactoryonline.com/cqueiroz+)
-Username:: the user you created in artifactory
-Password:: the encrypted password you copied a moment ago
-
 == Create the Initial Build Job
 
-. Navigate back to Jenkins Home (http://pivotal-cloudbees.apj.fe.pivotal.io).
+. Navigate back to Jenkins Home (The URL will be provided)
 
-. Login with your PCF account.
+. Login with your Pivotal CloudFoundry account. (Will be provided)
 
-. Click +New Job+, give it the name +citytest-uniquetoken+ and select ``Build a free-style software project.'' Then
-click +OK+. Replace in the script below +uniquetoken+ with something like your username!
+. Click +New Job+, give it the name +citytest-<your_name>+ and select ``Build a free-style software project.'' Then
+click +OK+. Replace in the script below +<your_name>+ with something like your username!
 
 . Under +Source Code Management+, select +Git+, and supply your repository URL (e.g. `https://github.com/<YOUR_GIT_USERNAME>/citytest`).
 
@@ -100,11 +49,11 @@ Tasks:: +clean assemble+
 
 == Create the Deploy Job
 
-. Navigate back to Jenkins Home (http://pivotal-cloudbees.apj.fe.pivotal.io).
+. Navigate back to Jenkins Home (The URL will be provided)
 
 . Login with your PCF account.
 
-. Click +New Job+, give it the name +citytest-uniquetoken-deploy+ and select ``Build a free-style software project.''
+. Click +New Job+, give it the name +citytest-<your_name>-deploy+ and select ``Build a free-style software project.''
  Then click +OK+.
 
 . Check +This build is parameterized+.
@@ -130,7 +79,7 @@ def getAllBuildNumbers(Job job) {
   return buildNumbers
 }
 
-def buildJob = Jenkins.instance.getItemByFullName('citytest-uniquetoken');
+def buildJob = Jenkins.instance.getItemByFullName('citytest-<your_name>');
 return getAllBuildNumbers(buildJob)
 ----
 
@@ -138,7 +87,7 @@ return getAllBuildNumbers(buildJob)
 * Select your Artifactory server.
 * Select +ext-releases_local+ as the +Target Repository+.
 +
-Resolved Artifacts:: `libs-releases-local:citytest-uniquetoken/${BUILD_VERSION}/*=>artifacts`
+Resolved Artifacts:: `libs-releases-local:citytest-<your_name>/${BUILD_VERSION}/*=>artifacts`
 +
 * Ensure +Capture and Publish Build Info+ is checked.
 
@@ -147,7 +96,7 @@ Resolved Artifacts:: `libs-releases-local:citytest-uniquetoken/${BUILD_VERSION}/
 Name:: +CF_PASSWORD+
 Password:: Your Pivotal Web Services Password
 
-. Under +Build+, add a +Execute Shell+ build step. Remember to replace in the script below +uniquetoken+ with something
+. Under +Build+, add a +Execute Shell+ build step. Remember to replace in the script below +<your_name>+ with something
 like your username!
 +
 Command::
