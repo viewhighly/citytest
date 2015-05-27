@@ -3,47 +3,47 @@
 
 == Intro
 
-This lab will guide you through building a "BASIC" continuous delivery pipeline using Jenkins, Artifactory, and Cloud
+This lab will guide you through building a "BASIC" continuous delivery pipeline using Jenkins and Pivotal Cloud
 Foundry.
 
 == Setup Steps
 
-. FORK (using the GitHub UI) and clone the [citytest repo](https://github.com/cqueiroz-pivotal/citytest):
+. FORK (using the GitHub UI) and clone the [citytest repo](https://github.com/hinyinlam-pivotal/citytest):
 +
 [source,bash]
 ----
 $ git clone https://github.com/<YOUR_GIT_USERNAME>/citytest
 $ cd citytest
 ----
+
 == Create the Initial Build Job
 
 . Navigate back to Jenkins Home (The URL will be provided)
 
 . Login with your Pivotal CloudFoundry account. (Will be provided)
 
-. Click +New Job+, give it the name +citytest-<your_name>+ and select ``Build a free-style software project.'' Then
-click +OK+. Replace in the script below +<your_name>+ with something like your username!
+. Click +New Job+, give it the name +citytest-<your_name>-build+ and select ``Build a free-style software project.'' Then
+click +OK+. Replace in the script below +<your_name>+ with your name without space!
 
 . Under +Source Code Management+, select +Git+, and supply your repository URL (e.g. `https://github.com/<YOUR_GIT_USERNAME>/citytest`).
 
 . Under +Build Triggers+, select +Poll SCM+ and provide the string +* * * * *+.
 
-. Under +Build Environment+, select +Gradle-Artifactory Integration+.
-+
-* Select your Artifactory server.
-* Select +libs-releases_local+ as the +Publishing Repository+.
-* Ensure the following are checked:
-** Capture and publish build info
-** Allow promotion of non-staged builds
-** Publish artifacts to Artifactory
-** Publish Ivy descriptors
-
 . Under +Build+, add a +Invoke Gradle Script+ build step.
 +
-Gradle Version:: gradle-latest
+Select: Use Gradle Wrapper
+Select: Make gradlew executable
+Select: From Root Build Script Dir
 Build Step Description:: +build environment agnostic artifact+
 Switches:: +-Pbuildversion=$BUILD_NUMBER+
 Tasks:: +clean assemble+
+
+. Under "Post-build Actions"
+Click: "Add post-build action"
+Select "Archive the artifacts"
+Fill in "Files to archive" :  build/libs/citytest*.jar
+Click "Advanced..."
+Select "Archive artifacts only if build is successful"
 
 . Save the config and try running the build by clicking ``Build Now''. Ensure that you see the artifact in Artifactory.
 
@@ -68,6 +68,7 @@ Groovy System Script::
 +
 [source,groovy]
 ----
+//Change the parameter of <your_name> below, otherwise the script won't work!
 import jenkins.model.*
 import hudson.model.*
 
@@ -79,61 +80,58 @@ def getAllBuildNumbers(Job job) {
   return buildNumbers
 }
 
-def buildJob = Jenkins.instance.getItemByFullName('citytest-<your_name>');
+def buildJob = Jenkins.instance.getItemByFullName('citytest-<your_name>-build');
 return getAllBuildNumbers(buildJob)
 ----
 
-. Under +Build Environment+, select +Generic-Artifactory Integration+.
-* Select your Artifactory server.
-* Select +ext-releases_local+ as the +Target Repository+.
-+
-Resolved Artifacts:: `libs-releases-local:citytest-<your_name>/${BUILD_VERSION}/*=>artifacts`
-+
-* Ensure +Capture and Publish Build Info+ is checked.
+* Click "Add build step" under the "Build" section of the page
+* Select "Copy artifacts from another project""
+* Project name: citytest-<your_name>-build
+* Which build: Specified by a build parameter
+*    Parameter Name: BUILD_SELECTOR
 
-. Check +Mask Passwords+, then Add:
-+
-Name:: +CF_PASSWORD+
-Password:: Your Pivotal Web Services Password
-
-. Under +Build+, add a +Execute Shell+ build step. Remember to replace in the script below +<your_name>+ with something
-like your username!
+. Under +Build+, add a +Execute Shell+ build step. Remember to replace in the script below +<your_name>+ with your name without space!
 +
 Command::
 +
 [source,bash]
 ----
 #!/bin/bash
-PIVOTAL_WEB_SERVICE_USERNAME="<<<YOUR PWS Username >>>"
-PIVOTAL_WEB_SERVICE_ORGANIZATION="<<<YOUR PWS Organization>>>"
-PIVOTAL_WEB_SERVICE_SPACE="<<<YOUR PWS Space>>>"
-YOUR_UNIQUE_TOKEN="<<< Give a nice unique name for your App>>>"
+#Please fill in details settings below or otherwise it won't work!
+PCF_USERNAME=<YOUR_PCF_USERNAME_HERE>
+PCF_PASSWORD=<YOUR_PCF_PASSWORD_HERE>
+PCF_ORGANIZATION=<YOUR_PCF_ORGANIZATION_HERE>
+PCF_SPACE=<YOUR_PCF_SPACE_HERE>
+YOUR_NAME=<YOUR_NAME_HERE>
+
+PCF_API_ENDPOINT=https://api.run.pivotal.io
+PCF_APP_DOMAIN=cfapps.io
 
 cf --version
-cf login -a https://api.run.pivotal.io -u ${PIVOTAL_WEB_SERVICE_USERNAME} -p ${CF_PASSWORD} -o ${PIVOTAL_WEB_SERVICE_ORGANIZATION} -s ${PIVOTAL_WEB_SERVICE_SPACE}
+cf login -a ${PCF_API_ENDPOINT} -u ${PCF_USERNAME} -p ${PCF_PASSWORD} -o ${PCF_ORGANIZATION} -s ${PCF_SPACE}
 
-DEPLOYED_VERSION_CMD=$(CF_COLOR=false cf apps | grep 'cities-${YOUR_UNIQUE_TOKEN}-' | cut -d" " -f1)
+DEPLOYED_VERSION_CMD=$(CF_COLOR=false cf apps | grep 'cities-${YOUR_NAME}-' | cut -d" " -f1)
 DEPLOYED_VERSION="$DEPLOYED_VERSION_CMD"
 ROUTE_VERSION=$(echo "${BUILD_VERSION}" | cut -d"." -f1-3 | tr '.' '-')
 echo "Deployed Version: $DEPLOYED_VERSION"
 echo "Route Version: $ROUTE_VERSION"
 
-cf push "cities-${YOUR_UNIQUE_TOKEN}-$BUILD_VERSION" -i 1 -m 512M -n "cities-${YOUR_UNIQUE_TOKEN}-$ROUTE_VERSION" -d cfapps.io -p artifacts/citytest-${BUILD_VERSION}.jar --no-manifest
+cf push "cities-${YOUR_NAME}-$BUILD_VERSION" -i 1 -m 512M -n "cities-${YOUR_NAME}-$ROUTE_VERSION" -d ${PCF_APP_DOMAIN} -p artifacts/citytest-${BUILD_VERSION}.jar --no-manifest
 
 echo "Is artifacts/citytest-${BUILD_VERSION}.jar exists?"
 pwd
 ls -l artifacts/citytest-${BUILD_VERSION}.jar
 
-cf map-route "cities-${YOUR_UNIQUE_TOKEN}-${BUILD_VERSION}" cfapps.io -n cities-${YOUR_UNIQUE_TOKEN}
-cf scale cities-${YOUR_UNIQUE_TOKEN}-${BUILD_VERSION} -i 2
-if [ ! -z "$DEPLOYED_VERSION" -a "$DEPLOYED_VERSION" != " " -a "$DEPLOYED_VERSION" != "cities-${YOUR_UNIQUE_TOKEN}-${BUILD_VERSION}" ]; then
+cf map-route "cities-${YOUR_NAME}-${BUILD_VERSION}" ${PCF_APP_DOMAIN} -n cities-${YOUR_NAME}
+cf scale cities-${YOUR_NAME}-${BUILD_VERSION} -i 2
+if [ ! -z "$DEPLOYED_VERSION" -a "$DEPLOYED_VERSION" != " " -a "$DEPLOYED_VERSION" != "cities-${YOUR_NAME}-${BUILD_VERSION}" ]; then
   echo "Performing zero-downtime cutover to $BUILD_VERSION"
   while read line
   do
-    if [ ! -z "$line" -a "$line" != " " -a "$line" != "cities-${YOUR_UNIQUE_TOKEN}-${BUILD_VERSION}" ]; then
+    if [ ! -z "$line" -a "$line" != " " -a "$line" != "cities-${YOUR_NAME}-${BUILD_VERSION}" ]; then
       echo "Scaling down, unmapping and removing $line"
       cf scale "$line" -i 1
-      cf unmap-route "$line" cfapps.io -n cities-${YOUR_UNIQUE_TOKEN}
+      cf unmap-route "$line" ${PCF_APP_DOMAIN} -n cities-${YOUR_NAME}
       cf delete "$line" -f
     else
       echo "Skipping $line"
