@@ -90,7 +90,7 @@ Command::
 +
 [source,bash]
 ----
-#!/bin/bash
+#!/bin/bash -x
 #Please fill in details settings below or otherwise it won't work!
 PCF_USERNAME=<YOUR_PCF_USERNAME_HERE>
 PCF_PASSWORD=<YOUR_PCF_PASSWORD_HERE>
@@ -105,8 +105,7 @@ APP_ARTIFACT_PATH=/artifacts/$YOUR_NAME/build/libs
 cf --version
 cf login -a ${PCF_API_ENDPOINT} -u ${PCF_USERNAME} -p ${PCF_PASSWORD} -o ${PCF_ORGANIZATION} -s ${PCF_SPACE}
 
-DEPLOYED_VERSION_CMD=$(CF_COLOR=false cf apps | grep 'cities-${YOUR_NAME}-' | cut -d" " -f1)
-DEPLOYED_VERSION="$DEPLOYED_VERSION_CMD"
+DEPLOYED_VERSION=$(CF_COLOR=false cf apps | grep "cities-${YOUR_NAME}-" | cut -d" " -f1)
 ROUTE_VERSION=$(echo "${BUILD_VERSION}" | cut -d"." -f1-3 | tr '.' '-')
 echo "Deployed Version: $DEPLOYED_VERSION"
 echo "Route Version: $ROUTE_VERSION"
