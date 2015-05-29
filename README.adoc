@@ -102,7 +102,7 @@ PCF_API_ENDPOINT=https://api.run.pivotal.io
 PCF_APP_DOMAIN=cfapps.io
 APP_ARTIFACT_PATH=/artifacts/$YOUR_NAME/build/libs
 f --version
-cf login -a ${PCF_API_ENDPOINT} -u ${PCF_USERNAME} -p ${PCF_PASSWORD} -o ${PCF_ORGANIZATION} -s ${PCF_SPACE}
+cf login --skip-ssl-validation -a ${PCF_API_ENDPOINT} -u ${PCF_USERNAME} -p ${PCF_PASSWORD} -o ${PCF_ORGANIZATION} -s ${PCF_SPACE}
 
 DEPLOYED_VERSION_CMD=$(CF_COLOR=false cf apps | grep "cities-${YOUR_NAME}-" | cut -d" " -f1)
 DEPLOYED_VERSION=$DEPLOYED_VERSION_CMD
