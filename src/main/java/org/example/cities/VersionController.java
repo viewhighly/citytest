@@ -8,6 +8,6 @@ public class VersionController {
 
     @RequestMapping("/version")
     public String index() {
-        return "v1.2.13";
+        return "v1.2.1.1.1.";
     }
 }
